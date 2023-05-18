@@ -10,3 +10,7 @@ RUN set -e \
 RUN set -e \
     && apt-get -y update \
     && apt-get -y install postgresql-client
+
+RUN pip install -e .
+
+ENTRYPOINT ["sh", "-c", "cd /home && bash"]

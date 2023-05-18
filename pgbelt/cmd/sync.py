@@ -55,7 +55,7 @@ async def sync_sequences(config_future: Awaitable[DbupgradeConfig]) -> None:
 @run_with_configs(skip_dst=True)
 async def dump_tables(
     config_future: Awaitable[DbupgradeConfig],
-    tables: list[str] = Option([], help="Specific tables to dump"),
+    tables: str = Option(None, help="Specific tables to dump"),
 ) -> None:
     """
     Dump all tables without primary keys from the source database and save
@@ -68,21 +68,21 @@ async def dump_tables(
     logger = get_logger(conf.db, conf.dc, "sync.src")
 
     if tables:
-        tables = tables.split(",")
+        dump_tables = tables.split(",")
     else:
         async with create_pool(conf.src.pglogical_uri, min_size=1) as src_pool:
-            _, tables, _ = await analyze_table_pkeys(src_pool, logger)
+            _, dump_tables, _ = await analyze_table_pkeys(src_pool, logger)
 
         if conf.tables:
-            tables = [t for t in tables if t in conf.tables]
+            dump_tables = [t for t in dump_tables if t in conf.tables]
 
-    await dump_source_tables(conf, tables, logger)
+    await dump_source_tables(conf, dump_tables, logger)
 
 
 @run_with_configs(skip_src=True)
 async def load_tables(
     config_future: Awaitable[DbupgradeConfig],
-    tables: list[str] = Option([], help="Specific tables to load"),
+    tables: str = Option(None, help="Specific tables to load"),
 ):
     """
     Load all locally saved table data files into the destination db. A table will
@@ -95,20 +95,20 @@ async def load_tables(
     logger = get_logger(conf.db, conf.dc, "sync.dst")
 
     if tables:
-        tables = tables.split(",")
+        dump_tables = tables.split(",")
     else:
         if conf.tables:
-            tables = [t for t in tables if t in conf.tables]
+            dump_tables = [t for t in dump_tables if t in conf.tables]
         else:
-            tables = []
+            dump_tables = []
 
-    await load_dumped_tables(conf, tables, logger)
+    await load_dumped_tables(conf, dump_tables, logger)
 
 
 @run_with_configs
 async def sync_tables(
     config_future: Awaitable[DbupgradeConfig],
-    tables: list[str] = Option([], help="Specific tables to sync"),
+    tables: str = Option(None, help="Specific tables to sync"),
 ):
     """
     Dump and load all tables from the source database to the destination database.
@@ -131,7 +131,7 @@ async def sync_tables(
         if conf.tables:
             dump_tables = [t for t in dump_tables if t in conf.tables]
 
-    await dump_source_tables(conf, dump_tables)
+    await dump_source_tables(conf, dump_tables, src_logger)
     await load_dumped_tables(
         conf, [] if not tables and not conf.tables else dump_tables, dst_logger
     )
