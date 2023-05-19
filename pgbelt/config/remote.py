@@ -1,13 +1,14 @@
 from importlib import import_module
 from json import JSONDecodeError
 from logging import Logger
-from typing import Optional  # noqa: F401 # Needed until tiangolo/typer#522 is fixed)
+from typing import \
+    Optional  # noqa: F401 # Needed until tiangolo/typer#522 is fixed)
 
 from aiofiles import open as aopen
+from pydantic import BaseModel, ValidationError
+
 from pgbelt.config.models import DbupgradeConfig
 from pgbelt.util.logs import get_logger
-from pydantic import BaseModel
-from pydantic import ValidationError
 
 
 def remote_conf_path(db: str, dc: str) -> str:

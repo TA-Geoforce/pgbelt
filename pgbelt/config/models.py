@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from os.path import join
-from typing import Optional  # noqa: F401 # Needed until tiangolo/typer#522 is fixed)
+from typing import \
+    Optional  # noqa: F401 # Needed until tiangolo/typer#522 is fixed)
 
 from aiofiles import open as aopen
 from aiofiles.os import remove
+from pydantic import BaseModel, ValidationError, validator
+
 from pgbelt.util import get_logger
 from pgbelt.util.asyncfuncs import makedirs
-from pydantic import BaseModel
-from pydantic import ValidationError
-from pydantic import validator
 
 
 def config_dir(db: str, dc: str) -> str:

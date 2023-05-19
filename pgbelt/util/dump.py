@@ -1,15 +1,14 @@
 import asyncio
 from logging import Logger
 from os.path import join
-from pgbelt.config.models import DbupgradeConfig
-from pgbelt.util.asyncfuncs import isfile
-from pgbelt.util.asyncfuncs import listdir
-from pgbelt.util.asyncfuncs import makedirs
-from pgbelt.util.postgres import table_empty
 from re import search
 
 from aiofiles import open as aopen
 from asyncpg import create_pool
+
+from pgbelt.config.models import DbupgradeConfig
+from pgbelt.util.asyncfuncs import isfile, listdir, makedirs
+from pgbelt.util.postgres import table_empty
 
 RAW = "schema"
 NO_INVALID = "no_invalid_constraints"

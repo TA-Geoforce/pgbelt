@@ -2,21 +2,17 @@ from asyncio import gather
 from collections.abc import Awaitable
 from logging import Logger
 
-from asyncpg import create_pool
-from asyncpg import Pool
+from asyncpg import Pool, create_pool
+from typer import Option
+
 from pgbelt.cmd.helpers import run_with_configs
 from pgbelt.config.models import DbupgradeConfig
-from pgbelt.util.dump import apply_target_constraints
-from pgbelt.util.dump import dump_source_tables
-from pgbelt.util.dump import load_dumped_tables
+from pgbelt.util.dump import (apply_target_constraints, dump_source_tables,
+                              load_dumped_tables)
 from pgbelt.util.logs import get_logger
-from pgbelt.util.postgres import analyze_table_pkeys
-from pgbelt.util.postgres import compare_100_rows
-from pgbelt.util.postgres import compare_latest_100_rows
-from pgbelt.util.postgres import dump_sequences
-from pgbelt.util.postgres import load_sequences
-from pgbelt.util.postgres import run_analyze
-from typer import Option
+from pgbelt.util.postgres import (analyze_table_pkeys, compare_100_rows,
+                                  compare_latest_100_rows, dump_sequences,
+                                  load_sequences, run_analyze)
 
 
 async def _sync_sequences(
@@ -68,15 +64,15 @@ async def dump_tables(
     logger = get_logger(conf.db, conf.dc, "sync.src")
 
     if tables:
-        dump_tables = tables.split(",")
+        tables_list = tables.split(",")
     else:
         async with create_pool(conf.src.pglogical_uri, min_size=1) as src_pool:
-            _, dump_tables, _ = await analyze_table_pkeys(src_pool, logger)
+            _, tables_list, _ = await analyze_table_pkeys(src_pool, logger)
 
         if conf.tables:
-            dump_tables = [t for t in dump_tables if t in conf.tables]
+            tables_list = [t for t in tables_list if t in conf.tables]
 
-    await dump_source_tables(conf, dump_tables, logger)
+    await dump_source_tables(conf, tables_list, logger)
 
 
 @run_with_configs(skip_src=True)
@@ -95,14 +91,14 @@ async def load_tables(
     logger = get_logger(conf.db, conf.dc, "sync.dst")
 
     if tables:
-        dump_tables = tables.split(",")
+        tables_list = tables.split(",")
     else:
         if conf.tables:
-            dump_tables = [t for t in dump_tables if t in conf.tables]
+            tables_list = [t for t in tables_list if t in conf.tables]
         else:
-            dump_tables = []
+            tables_list = []
 
-    await load_dumped_tables(conf, dump_tables, logger)
+    await load_dumped_tables(conf, tables_list, logger)
 
 
 @run_with_configs
@@ -123,17 +119,17 @@ async def sync_tables(
     dst_logger = get_logger(conf.db, conf.dc, "sync.dst")
 
     if tables:
-        dump_tables = tables.split(",")
+        tables_list = tables.split(",")
     else:
         async with create_pool(conf.src.pglogical_uri, min_size=1) as src_pool:
-            _, dump_tables, _ = await analyze_table_pkeys(src_pool, src_logger)
+            _, tables_list, _ = await analyze_table_pkeys(src_pool, src_logger)
 
         if conf.tables:
-            dump_tables = [t for t in dump_tables if t in conf.tables]
+            tables_list = [t for t in tables_list if t in conf.tables]
 
-    await dump_source_tables(conf, dump_tables, src_logger)
+    await dump_source_tables(conf, tables_list, src_logger)
     await load_dumped_tables(
-        conf, [] if not tables and not conf.tables else dump_tables, dst_logger
+        conf, [] if not tables and not conf.tables else tables_list, dst_logger
     )
 
 

@@ -1,20 +1,14 @@
-from asyncio import gather
-from asyncio import run
-from collections.abc import Awaitable
-from collections.abc import Callable
+from asyncio import gather, run
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from inspect import iscoroutinefunction
-from inspect import Parameter
-from inspect import signature
-from typing import Any
-from typing import Optional  # noqa: F401 # Needed until tiangolo/typer#522 is fixed)
-from typing import TypeVar
+from inspect import Parameter, iscoroutinefunction, signature
+from typing import \
+    Optional  # noqa: F401 # Needed until tiangolo/typer#522 is fixed)
+from typing import Any, TypeVar
 
-from pgbelt.config import get_all_configs_async
-from pgbelt.config import get_config_async
-from typer import Argument
-from typer import Typer
+from typer import Argument, Typer
 
+from pgbelt.config import get_all_configs_async, get_config_async
 
 T = TypeVar("T")
 
